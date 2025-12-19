@@ -1,0 +1,80 @@
+name: SudimeAdder
+version: 7.3
+author: BlackAngel
+main: ch.blackangel.plugin.Main
+api-version: 1.16
+
+commands:
+  givesudime:
+    description: Donne un Sudime au joueur.
+    usage: /givesudime
+    permission: give.sudimeadder
+  givelaxarium:
+    description: "Donne un ou plusieurs Laxariums"
+    usage: /givelaxarium [joueur] [nombre]
+  furnace:
+    description: Cuit l'item dans ta main.
+    usage: /furnace
+    permission: furnace.sudimeadder
+  clearinfo:
+    description: Affiche le temps restant avant la suppression des items au sol.
+    usage: /clearinfo
+    permission: clearlagginfo.sudimeadder
+  clearlagg:
+    description: Nettoyer les items au sol
+    usage: /clearlagg
+    permission: clearlagg.admin
+  wiki:
+    description: Affiche le lien vers le wiki
+    usage: /wiki
+    permission: wiki.use
+  carte:
+    description: Ouvre un menu de sélection
+    usage: /carte
+    permission: carte.sudimeadder
+    permission-message: Tu n'as pas la permission d'utiliser cette commande !
+  discord:
+    description: Affiche un lien vers le Discord
+    usage: /discord
+    permission: monplugin.discord
+    permission-message: Tu n'as pas la permission d'utiliser cette commande !
+  rtp:
+    description: Téléporte aléatoirement le joueur.
+    usage: /rtp
+    permission: rtp.sudimeadder
+  tpworld:
+    description: Téléporte vers un autre monde
+    usage: /tpworld <nom_du_monde>
+    permission: worldteleport.tp
+  spawnboss:
+    description: Invoque le Boss Géant
+    usage: /spawnboss
+
+
+permissions:
+  give.sudimeadder:
+    description: Permet d'obtenir un Sudime via la commande.
+    default: op
+  furnace.sudimeadder:
+    description: Permet de cuire tes items.
+    default: op
+  clearlagginfo.sudimeadder:
+    description: Permet de savoir quand est le clear lagg
+    default: op
+  clearlagg.admin:
+    description: Force les clearlagg
+    default: op
+  wiki.use:
+    default: true
+  carte.sudimeadder:
+    default: true
+  rtp.sudimeadder:
+    default: true
+  bypassRTP.sudimeadder.1:
+    default: op
+  bypassRTP.sudimeadder.2:
+    default: op
+  bypassRTP.sudimeadder.3:
+    default: op
+  bypassRTP.sudimeadder.4:
+    default: op
