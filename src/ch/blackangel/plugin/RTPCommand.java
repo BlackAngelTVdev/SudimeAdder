@@ -123,19 +123,26 @@ public class RTPCommand implements CommandExecutor {
             int x = origin.getBlockX() + (random.nextBoolean() ? dx : -dx);
             int z = origin.getBlockZ() + (random.nextBoolean() ? dz : -dz);
 
+            // --- ZONE D'EXCLUSION ---
+            // Vérifie si X est entre 117 et 776 ET si Z est entre -42 et 943
+            // Note : On utilise Math.min/max pour être sûr que l'ordre des coordonnées ne casse pas le calcul
+            boolean isInExcludedZone = (x >= Math.min(117, 776) && x <= Math.max(117, 776))
+                    && (z >= Math.min(943, -42) && z <= Math.max(943, -42));
+
+            if (isInExcludedZone) {
+                continue; // Recommence la boucle pour trouver une autre coordonnée
+            }
+            // ------------------------
+
             int groundY = world.getHighestBlockYAt(x, z);
-            // spawn au-dessus du sol
             Location loc = new Location(world, x + 0.5, groundY + 1.0, z + 0.5);
 
             Material groundType = world.getBlockAt(x, groundY, z).getType();
-
-            // éviter l'eau, la lave et s'assurer que le sol est solide
             String name = groundType.name();
             boolean isWater = name.contains("WATER") || name.contains("KELP") || name.contains("SEAGRASS");
             boolean isLava = name.contains("LAVA");
             boolean isSolid = groundType.isSolid();
 
-            // vérifier aussi que le bloc au spawn et le bloc au-dessus sont libres
             Material spawnBlock = world.getBlockAt(loc).getType();
             Material aboveSpawn = world.getBlockAt(loc.getBlockX(), loc.getBlockY() + 1, loc.getBlockZ()).getType();
             boolean spaceClear = spawnBlock == Material.AIR && aboveSpawn == Material.AIR;

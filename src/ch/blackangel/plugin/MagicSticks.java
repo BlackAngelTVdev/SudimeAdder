@@ -32,9 +32,9 @@ public class MagicSticks {
         ItemStack stick = new ItemStack(Material.STICK);
         ItemMeta meta = stick.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§a✦ Stick of Good");
+            meta.setDisplayName("§a✦ Blessing Stick");
             meta.setLore(Arrays.asList(
-                    "§7Soigne le porteur de façon spectaculaire",
+                    "§7Déclenche une bénédiction restaurant l'énergie vitale du porteur",
                     "§7Durabilité: §e25 utilisations",
                     "§7Cooldown: §c30 secondes",
                     "",

@@ -2,6 +2,7 @@ package ch.blackangel.plugin;
 
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,9 +14,11 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import org.bukkit.event.player.PlayerQuitEvent;
+import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+
 
 public class MagicSticksListener implements Listener {
 
@@ -35,6 +38,22 @@ public class MagicSticksListener implements Listener {
         this.magicSticks = magicSticks;
     }
 
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
+
+        // Si le joueur déco alors qu'il est en plein "Stick of View"
+        if (spectatorLocations.containsKey(playerId)) {
+            // On le TP à sa position de départ immédiatement
+            player.teleport(spectatorLocations.get(playerId));
+            // On le remet en survie
+            player.setGameMode(GameMode.SURVIVAL);
+
+            // On nettoie la liste pour ne pas laisser de données inutiles
+            spectatorLocations.remove(playerId);
+        }
+    }
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
@@ -164,6 +183,22 @@ public class MagicSticksListener implements Listener {
                 }
             }
         }.runTaskLater(plugin, 20 * 10); // 10 secondes
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                // On vérifie si le joueur est en ligne ET s'il est toujours dans notre liste
+                if (player.isOnline() && spectatorLocations.containsKey(playerId)) {
+                    Location returnLoc = spectatorLocations.get(playerId);
+                    player.teleport(returnLoc);
+                    player.setGameMode(GameMode.SURVIVAL);
+                    player.sendMessage("§a✦ Retour au mode normal !");
+                    player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 0.8f);
+
+                    // On retire le joueur de la liste une fois terminé
+                    spectatorLocations.remove(playerId);
+                }
+            }
+        }.runTaskLater(plugin, 20 * 10);
     }
 
     private void useStickOfTNT(Player player, ItemStack stick) {

@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -21,6 +22,9 @@ public class Hoe implements Listener {
     private final Plugin plugin;
     private final Random random = new Random();
 
+    // Plus ce nombre est haut, plus la houe est résistante (ex: 2 = 2x plus de vie)
+    private final int DURABILITY_MULTIPLIER = 2;
+
     public Hoe(Plugin plugin) {
         this.plugin = plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -32,13 +36,14 @@ public class Hoe implements Listener {
         ItemMeta meta = hoe.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(HOE_NAME);
-            meta.setUnbreakable(false);
+            // On peut ajouter un lore pour expliquer la durabilité
             hoe.setItemMeta(meta);
         }
 
         NamespacedKey key = new NamespacedKey(plugin, "sudime_hoe");
         ShapedRecipe recipe = new ShapedRecipe(key, hoe);
         recipe.shape("SS ", " X ", " X ");
+        // Note: Assure-toi que CustomItemCreator existe bien dans ton projet
         recipe.setIngredient('S', new RecipeChoice.ExactChoice(CustomItemCreator.getSudimeItem()));
         recipe.setIngredient('X', Material.STICK);
 
@@ -48,14 +53,50 @@ public class Hoe implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null) {
-            if (event.getPlayer().getInventory().getItemInMainHand().hasItemMeta() &&
-                    event.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals(HOE_NAME)) {
+            ItemStack item = event.getItem();
+
+            if (item != null && item.hasItemMeta() &&
+                    item.getItemMeta().hasDisplayName() &&
+                    item.getItemMeta().getDisplayName().equals(HOE_NAME)) {
+
                 replantCrops(event.getClickedBlock());
-                event.getItem().setDurability((short) (event.getItem().getDurability() + 1));
+                handleCustomDurability(item, event.getPlayer());
             }
         }
     }
 
+    private void handleCustomDurability(ItemStack item, org.bukkit.entity.Player player) {
+        ItemMeta meta = item.getItemMeta();
+        if (!(meta instanceof org.bukkit.inventory.meta.Damageable)) return;
+
+        org.bukkit.inventory.meta.Damageable damageable = (org.bukkit.inventory.meta.Damageable) meta;
+
+        // --- LOGIQUE DE DURABILITÉ ---
+
+        // 1. Calcul du bonus "Unbreaking" (Solidité)
+        // La formule officielle est 100/(level+1) % de chance de perdre de la durabilité
+        int unbreakingLevel = item.getEnchantmentLevel(Enchantment.DURABILITY);
+        double chanceToDamage = 1.0 / (unbreakingLevel + 1);
+
+        // 2. Application du multiplicateur custom (DURABILITY_MULTIPLIER)
+        chanceToDamage = chanceToDamage / DURABILITY_MULTIPLIER;
+
+        // 3. Test de chance : si le random est inférieur à notre chance, on applique le dégât
+        if (random.nextDouble() <= chanceToDamage) {
+            int newDamage = damageable.getDamage() + 1;
+            int maxDurability = item.getType().getMaxDurability();
+
+            if (newDamage >= maxDurability) {
+                item.setAmount(0);
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+            } else {
+                damageable.setDamage(newDamage);
+                item.setItemMeta(meta);
+            }
+        }
+    }
+
+    // Le reste de tes méthodes (replantCrops, dropHarvest) reste inchangé
     private void replantCrops(Block center) {
         for (int x = -1; x <= 1; x++) {
             for (int z = -1; z <= 1; z++) {
